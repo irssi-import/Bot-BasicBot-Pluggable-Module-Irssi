@@ -37,6 +37,7 @@ my %synfiles = (
 'src/fe-common/core/fe-recode.c' => [qw( RECODE )],
 'src/fe-common/core/fe-server.c' => [qw( SERVER )],
 'src/fe-common/core/fe-settings.c' => [qw( ALIAS RELOAD SAVE SET TOGGLE UNALIAS )],
+'src/fe-common/core/completion.c' => [qw( COMPLETION )],
 'src/fe-common/core/hilight-text.c' => [qw( DEHILIGHT HILIGHT )],
 'src/fe-common/core/keyboard.c' => [qw( BIND )],
 'src/fe-common/core/themes.c' => [qw( FORMAT )],
