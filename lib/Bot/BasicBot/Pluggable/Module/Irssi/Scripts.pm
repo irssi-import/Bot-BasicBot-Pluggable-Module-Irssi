@@ -45,17 +45,17 @@ sub said {
 	my $type = $+{type1} || $+{type2};
 	my $info = lc $type eq 'info';
 	my $ref = _getdb() || return;
-	my @val = split ' ', $query;
+	my @val = split ' ', lc $query;
 	my @matches;
 	my $script = $query;
 	$script =~ s/\.pl$//;
 	if ($info) {
-	    @matches = grep { lc $_->{filename} eq lc "${script}.pl" } @$ref;
+	    @matches = map { +{ s => $_, w => 1 } } grep { lc $_->{filename} eq lc "${script}.pl" } @$ref;
 	} else {
 	    for my $script (sort { $b->{modified} cmp $a->{modified} } @$ref) {
 		my @str;
 		for my $ent (qw(filename name description authors)) {
-		    push @str, $script->{$ent} if defined $script->{$ent};
+		    push @str, lc $script->{$ent} if defined $script->{$ent};
 		};
 		my $str = join ' ', @str;
 		my $match = 1;
@@ -70,14 +70,25 @@ sub said {
 		    }
 		}
 		if ($match) {
-		    push @matches, $script;
+		    my $w = 1;
+		    for my $v (@val) {
+			next if '-' eq substr $v, 0, 1;
+			my $i = @str;
+			for my $s (@str) {
+			    if (-1 != index $s, $v) {
+				$w += $i;
+			    }
+			}
+			$i--;
+		    }
+		    push @matches, +{ s => $script, w => $w };
 		}
 	    }
 	}
 	if (@matches) {
-	    my ($match) = grep { lc $_->{filename} eq lc "${script}.pl" } @matches; # exact
-	    $match = $matches[0] unless $match;
-	    my %m1 = %$match;
+	    my ($match) = grep { lc $_->{s}{filename} eq lc "${script}.pl" } @matches; # exact
+	    $match = (sort { $b->{w} <=> $a->{w} } @matches)[0] unless $match;
+	    my %m1 = %{ $match->{s} };
 	    my $fn = $m1{filename} =~ s/\.pl$//r;
 	    my $str1 = "\cB$fn\cB $m1{description} v$m1{version} \cO".(length $m1{authors} ? "($m1{authors}) " : "")."- ";
 	    for my $v (split ' ', $query) {
