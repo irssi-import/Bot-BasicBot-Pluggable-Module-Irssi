@@ -6,16 +6,13 @@ use warnings;
 use YAML::Tiny;
 use LWP::Simple qw(); # must not override get!
 use WWW::Shorten::Simple;
+use AkariLinkShortener;
 
-my $sck = WWW::Shorten::Simple->new('SCK');
+my $sck = AkariLinkShortener->new;
 
 sub help {
     return
-"Help from Irssi.
-
-help <command>
-help <command> <subcommand>
-syntax <command>"
+"Help from Irssi. Usage: help <command>, help <command> <subcommand>, syntax <command>"
 }
 
 # ack --cc SYNTAX | perl -aln -E' @F = split ":"; @G = split " ", $F[3]; $cmd{ $F[0] }{ $G[0] } = 1; END { for (sort keys %cmd) { print "'"'"'$_'"'"' => [qw( " . (join " ", sort keys %{$cmd{$_}}) . " )]," } }  '
@@ -103,7 +100,7 @@ sub _add_syn_colors {
 		  (,?\s*|\|) |
 		  (< .*? >) |
 		  ((?<!^) [[] (?: [^][]++ | (?R) )* []]) |
-		  ([^][\s]+?)
+		  ([^][\s,|><]+)
 	  }{
 #	      defined $1 ? _popcol($cc, $1) :
 	      defined $1 ? $1 :
@@ -193,25 +190,28 @@ sub said {
 	    if ($info) {
 		$info = _add_syn_colors($info, ["*", "*05", "10"], ["09", "14"], ["*", "13", "13"], ["14"], []);
 
-		$info .= " .. type /help \L$words[0]";
+		$info .= " .. " . $sck->shorten("https://ailin-nemui.github.io/irssi/documentation/help/\L$words[0].html");
 	    }
 	}
 	elsif (@words > 1 && ('set' eq lc $words[0] || 'setting' eq lc $words[0])) {
 	    # look up setting
-	    my $res = LWP::Simple::get("https://github.com/irssi/irssi.github.io/raw/master/documentation/settings/index.markdown");
+	    my $res = LWP::Simple::get("https://ailin-nemui.github.io/irssi/_sources/documentation/settings.md.txt");
 	    my @info;
 	    my $soon = 0;
 	    my $val;
 	    for my $line (split "\n", $res) {
-		if ($line =~ /^\{:#\Q$words[1]\E\}/i) {
+		if ($line =~ /^\(\Q$words[1]\E\)=/i) {
 		    $soon = 1;
 		}
-		elsif ($soon == 1 && $line =~ /^` (.*) `$/) {
-		    $val = $1;
+		elsif ($soon == 1 && $line =~ /^(?:` (.*) `|`(.*)` \*\*`(.*)`\*\*)$/) {
+		    $val = defined $1 ? $1 : "$2 = $3";
 		    $soon++;
 		}
-		elsif ($soon && $line =~ /^>/) {
-		    push @info, ($line =~ /^> (.*)/);
+		elsif ($soon && $line =~ /^[: ]/) {
+		    next if $line =~ /^:?\s+$/;
+		    next if $line =~ /^:?\s+!/;
+		    next if $line =~ /^:?\s+```/;
+		    push @info, ($line =~ /^[: ] (.*)/);
 		}
 		elsif (@info) {
 		    last;
@@ -226,18 +226,21 @@ sub said {
 		@info = grep /\b$expr\b/i, @info;
 	    }
 	    s/`//g for @info;
+	    s/\\\\/\\/g for @info;
 	    if (@info) {
 		my $sep =($info[0] =~ s/^\Q$words[1]\E\s+=(\s+|\s*$)//i) ? '' : ':';
-		my $clr = !$sep && !$info[0] ? '-clear ' : '';
+		my $clr = !$sep && !length $info[0] ? '-clear ' : '';
+		my $setting_anchor = lc $words[1];
+		$setting_anchor =~ s/_/-/g;
 		$info = "/set $clr\cB\L$words[1]\E\cB$sep $info[0] " . (@info > 1 ? " ... " : "")
-		    . " .. " . $sck->shorten("https://irssi.org/documentation/settings/#\L$words[1]");
+		    . " .. " . $sck->shorten("https://ailin-nemui.github.io/irssi/documentation/settings.html#$setting_anchor");
 	    }
 	}
 	else {
 	    # look up detailed help
 	    my $cmd = $words[0];
 	    $cmd =~ s/\W//g;
-	    my $res = LWP::Simple::get("https://github.com/irssi/irssi/raw/master/docs/help/in/$cmd.in");
+	    my $res = LWP::Simple::get("https://github.com/irssi/irssi/raw/master/docs/help/in/\L$cmd.in");
 	    if ($res) {
 		if (@words == 1 || (@words == 2 && $words[1] =~ /^desc(?:ription)?$/i )) {
 		    # description
@@ -256,8 +259,10 @@ sub said {
 			}
 		    }
 		    s{%(.)}{$rep{$1} // '%'.$1}ge for @info;
-		    $info = "\U\cB$cmd:\cB\E @info .. type: /help \L$cmd"
-			if @info;
+		    @info = '(No description found)'
+			unless @info;
+		    $info = "\U\cB$cmd:\cB\E @info .. " . $sck->shorten("https://ailin-nemui.github.io/irssi/documentation/help/\L$cmd.html");
+			#if @info;
 		}
 		else {
 		    my $expr = join "\\s+", map { quotemeta } @words[1..$#words];
@@ -277,7 +282,7 @@ sub said {
 			}
 		    }
 		    s{%(.)}{$rep{$1} // '%'.$1}ge for @info;
-		    $info = "\[\U$cmd\E\] @info .. type: /help \L$cmd"
+		    $info = "\[\U$cmd\E\] @info .. " . $sck->shorten("https://ailin-nemui.github.io/irssi/documentation/help/\L$cmd.html")
 			if @info;
 		}
 	    }
