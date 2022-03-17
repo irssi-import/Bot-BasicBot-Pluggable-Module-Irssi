@@ -207,7 +207,11 @@ sub said {
 		    $val = defined $1 ? $1 : "$2 = $3";
 		    $soon++;
 		}
-		elsif ($soon && $line =~ /^[: ]/) {
+		elsif ($soon == 2 && $line =~ /^\s*$/) {
+		    # skip
+		    $soon++;
+		}
+		elsif ($soon && $line =~ /^([: ]|$)/) {
 		    next if $line =~ /^:?\s+$/;
 		    next if $line =~ /^:?\s+!/;
 		    next if $line =~ /^:?\s+```/;
@@ -227,12 +231,19 @@ sub said {
 	    }
 	    s/`//g for @info;
 	    s/\\\\/\\/g for @info;
+	    pop @info unless $info[-1];
+	    my $ms;
+	    if (@info && $info[-1] =~ /^\s*Added in Irssi (.*?)\.?(?:\s|$)/) {
+		$ms = $1;
+		pop @info;
+	    }
 	    if (@info) {
 		my $sep =($info[0] =~ s/^\Q$words[1]\E\s+=(\s+|\s*$)//i) ? '' : ':';
 		my $clr = !$sep && !length $info[0] ? '-clear ' : '';
 		my $setting_anchor = lc $words[1];
 		$setting_anchor =~ s/_/-/g;
 		$info = "/set $clr\cB\L$words[1]\E\cB$sep $info[0] " . (@info > 1 ? " ... " : "")
+		    . ($ms ? " \cBMS:\cB$ms " : "")
 		    . " .. " . $sck->shorten("https://ailin-nemui.github.io/irssi/documentation/settings.html#$setting_anchor");
 	    }
 	}
