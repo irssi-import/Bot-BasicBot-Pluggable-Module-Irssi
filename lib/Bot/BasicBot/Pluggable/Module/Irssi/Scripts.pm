@@ -13,8 +13,8 @@ use URI::Escape;
 use Bot::BasicBot::Pluggable::MiscUtils qw(util_dehi);
 use AkariLinkShortener;
 
-my $gh = WWW::Shorten::Simple->new('GitHub');
-my $sck = AkariLinkShortener->new;
+my $als = AkariLinkShortener->new;
+#my $gh = WWW::Shorten::Simple->new('GitHub');  # broken as of 2022/01/11
 
 
 sub help {
@@ -170,8 +170,8 @@ sub said {
 # 	    }
 	    $str1 .= "$v_info  " if length $v_info;
 	    $info = "\cC7o\cC $str1"
-		.$gh->shorten("https://github.com/irssi/scripts.irssi.org/blob/master/scripts/$m1{filename}")
-		.(@matches > 1 ? " and \cB".(@matches-1)."\cB more: " . $sck->shorten("https://scripts.irssi.org/#q=".uri_escape_utf8($query)) : "");
+		.$als->shorten("https://github.com/irssi/scripts.irssi.org/blob/master/scripts/$m1{filename}")
+		.(@matches > 1 ? " and \cB".(@matches-1)."\cB more: " . $als->shorten("https://scripts.irssi.org/#q=".uri_escape_utf8($query)) : "");
 	    if ($readdress) {
 		my %hash = %$mess;
 		$hash{who} = $readdress;
