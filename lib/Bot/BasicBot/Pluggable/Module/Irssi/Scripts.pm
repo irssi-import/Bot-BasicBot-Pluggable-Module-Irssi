@@ -7,7 +7,7 @@ use YAML::Tiny;
 use LWP::Simple qw(); # must not override get!
 # trick cloudflare
 $LWP::Simple::ua->agent('curl/7.52.1');
-use WWW::Shorten::Simple;
+#use WWW::Shorten::Simple;
 use Data::Dumper;
 use URI::Escape;
 use Bot::BasicBot::Pluggable::MiscUtils qw(util_dehi);

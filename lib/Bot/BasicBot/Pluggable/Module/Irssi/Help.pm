@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use YAML::Tiny;
 use LWP::Simple qw(); # must not override get!
-use WWW::Shorten::Simple;
+#use WWW::Shorten::Simple;
 use AkariLinkShortener;
 
 my $sck = AkariLinkShortener->new;
@@ -313,3 +313,5 @@ sub said {
 	}
     }
 }
+
+1;
