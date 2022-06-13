@@ -190,12 +190,12 @@ sub said {
 	    if ($info) {
 		$info = _add_syn_colors($info, ["*", "*05", "10"], ["09", "14"], ["*", "13", "13"], ["14"], []);
 
-		$info .= " .. " . $sck->shorten("https://ailin-nemui.github.io/irssi/documentation/help/\L$words[0].html");
+		$info .= " .. " . $sck->shorten("https://irssi.org/documentation/help/\L$words[0]");
 	    }
 	}
 	elsif (@words > 1 && ('set' eq lc $words[0] || 'setting' eq lc $words[0])) {
 	    # look up setting
-	    my $res = LWP::Simple::get("https://ailin-nemui.github.io/irssi/_sources/documentation/settings.md.txt");
+	    my $res = LWP::Simple::get("https://irssi.org/_sources/documentation/settings.md.txt");
 	    my @info;
 	    my $soon = 0;
 	    my $val;
@@ -244,7 +244,7 @@ sub said {
 		$setting_anchor =~ s/_/-/g;
 		$info = "/set $clr\cB\L$words[1]\E\cB$sep $info[0] " . (@info > 1 ? " ... " : "")
 		    . ($ms ? " \cBMS:\cB$ms " : "")
-		    . " .. " . $sck->shorten("https://ailin-nemui.github.io/irssi/documentation/settings.html#$setting_anchor");
+		    . " .. " . $sck->shorten("https://irssi.org/documentation/settings#$setting_anchor");
 	    }
 	}
 	else {
@@ -272,7 +272,7 @@ sub said {
 		    s{%(.)}{$rep{$1} // '%'.$1}ge for @info;
 		    @info = '(No description found)'
 			unless @info;
-		    $info = "\U\cB$cmd:\cB\E @info .. " . $sck->shorten("https://ailin-nemui.github.io/irssi/documentation/help/\L$cmd.html");
+		    $info = "\U\cB$cmd:\cB\E @info .. " . $sck->shorten("https://irssi.org/documentation/help/\L$cmd");
 			#if @info;
 		}
 		else {
@@ -293,7 +293,7 @@ sub said {
 			}
 		    }
 		    s{%(.)}{$rep{$1} // '%'.$1}ge for @info;
-		    $info = "\[\U$cmd\E\] @info .. " . $sck->shorten("https://ailin-nemui.github.io/irssi/documentation/help/\L$cmd.html")
+		    $info = "\[\U$cmd\E\] @info .. " . $sck->shorten("https://irssi.org/documentation/help/\L$cmd")
 			if @info;
 		}
 	    }
