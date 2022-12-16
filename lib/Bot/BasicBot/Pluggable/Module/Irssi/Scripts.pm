@@ -55,7 +55,7 @@ sub said {
 
     return unless $pri == 2;
     my $body = $mess->{body};
-    return unless $body =~ s/^\#irssi: \s //ix || lc $mess->{channel} eq '#irssi';
+    return unless $body =~ s/^\#irssi: \s //ix || $body =~ s/^irssi:://i || lc $mess->{channel} eq '#irssi';
     my $readdress = $mess->{channel} ne 'msg' && $body =~ s/\s+@\s+(\S+)[.]?\s*$// ? $1 : '';
 
     if ($body =~ /^(?: script \s+ (?<type1> search | info ) | (?<type2> find ) \s+ script ) \s+ (?<query> .* )/xi) {
