@@ -5,10 +5,6 @@ use strict;
 use warnings;
 use YAML::Tiny;
 use LWP::Simple qw(); # must not override get!
-use WWW::Shorten::Simple;
-use AkariLinkShortener;
-
-my $sck = AkariLinkShortener->new;
 
 sub help {
     my $self = shift;
@@ -193,7 +189,7 @@ sub said {
 	    if ($info) {
 		$info = _add_syn_colors($info, ["*", "*05", "10"], ["09", "14"], ["*", "13", "13"], ["14"], []);
 
-		$info .= " .. " . $sck->shorten("https://irssi.org/documentation/help/\L$words[0]");
+		$info .= " .. " . $self->linkshortener->shorten("https://irssi.org/documentation/help/\L$words[0]");
 	    }
 	}
 	elsif (@words > 1 && ('set' eq lc $words[0] || 'setting' eq lc $words[0])) {
@@ -247,7 +243,7 @@ sub said {
 		$setting_anchor =~ s/_/-/g;
 		$info = "/set $clr\cB\L$words[1]\E\cB$sep $info[0] " . (@info > 1 ? " ... " : "")
 		    . ($ms ? " \cBMS:\cB$ms " : "")
-		    . " .. " . $sck->shorten("https://irssi.org/documentation/settings#$setting_anchor");
+		    . " .. " . $self->linkshortener->shorten("https://irssi.org/documentation/settings#$setting_anchor");
 	    }
 	}
 	else {
@@ -275,7 +271,7 @@ sub said {
 		    s{%(.)}{$rep{$1} // '%'.$1}ge for @info;
 		    @info = '(No description found)'
 			unless @info;
-		    $info = "\U\cB$cmd:\cB\E @info .. " . $sck->shorten("https://irssi.org/documentation/help/\L$cmd");
+		    $info = "\U\cB$cmd:\cB\E @info .. " . $self->linkshortener->shorten("https://irssi.org/documentation/help/\L$cmd");
 			#if @info;
 		}
 		else {
@@ -296,7 +292,7 @@ sub said {
 			}
 		    }
 		    s{%(.)}{$rep{$1} // '%'.$1}ge for @info;
-		    $info = "\[\U$cmd\E\] @info .. " . $sck->shorten("https://irssi.org/documentation/help/\L$cmd")
+		    $info = "\[\U$cmd\E\] @info .. " . $self->linkshortener->shorten("https://irssi.org/documentation/help/\L$cmd")
 			if @info;
 		}
 	    }

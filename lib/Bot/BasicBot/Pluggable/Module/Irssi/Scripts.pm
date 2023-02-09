@@ -7,13 +7,10 @@ use YAML::Tiny;
 use LWP::Simple qw(); # must not override get!
 # trick cloudflare
 $LWP::Simple::ua->agent('curl/7.52.1');
-use WWW::Shorten::Simple;
 use Data::Dumper;
 use URI::Escape;
 use Bot::BasicBot::Pluggable::MiscUtils qw(util_dehi);
-use AkariLinkShortener;
 
-my $als = AkariLinkShortener->new;
 #my $gh = WWW::Shorten::Simple->new('GitHub');  # broken as of 2022/01/11
 
 
@@ -173,8 +170,8 @@ sub said {
 # 	    }
 	    $str1 .= "$v_info  " if length $v_info;
 	    $info = "\cC7o\cC $str1"
-		.$als->shorten("https://github.com/irssi/scripts.irssi.org/blob/master/scripts/$m1{filename}")
-		.(@matches > 1 ? " and \cB".(@matches-1)."\cB more: " . $als->shorten("https://scripts.irssi.org/#q=".uri_escape_utf8($query)) : "");
+		.$self->linkshortener->shorten("https://github.com/irssi/scripts.irssi.org/blob/master/scripts/$m1{filename}")
+		.(@matches > 1 ? " and \cB".(@matches-1)."\cB more: " . $self->linkshortener->shorten("https://scripts.irssi.org/#q=".uri_escape_utf8($query)) : "");
 	    if ($readdress) {
 		my %hash = %$mess;
 		$hash{who} = $readdress;
