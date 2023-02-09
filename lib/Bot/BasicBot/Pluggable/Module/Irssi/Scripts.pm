@@ -18,8 +18,11 @@ my $als = AkariLinkShortener->new;
 
 
 sub help {
+    my $self = shift;
+    my ($mess) = @_;
+    my $prefix = $mess->{channel} eq 'msg' ? 'irssi::' : '';
     return
-"Information about Irssi scripts. Usage: script search <terms>, script info <name>"
+"Information about Irssi scripts. Usage: ${prefix}script search <terms>, ${prefix}script info <name>"
 }
 
 sub _getdb {

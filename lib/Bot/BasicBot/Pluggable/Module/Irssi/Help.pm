@@ -11,8 +11,11 @@ use AkariLinkShortener;
 my $sck = AkariLinkShortener->new;
 
 sub help {
+    my $self = shift;
+    my ($mess) = @_;
+    my $prefix = $mess->{channel} eq 'msg' ? 'irssi::' : '';
     return
-"Help from Irssi. Usage: help <command>, help <command> <subcommand>, syntax <command>"
+"Help from Irssi. Usage: ${prefix}help <command>, ${prefix}help <command> <subcommand>, ${prefix}syntax <command>"
 }
 
 # ack --cc SYNTAX | perl -aln -E' @F = split ":"; @G = split " ", $F[3]; $cmd{ $F[0] }{ $G[0] } = 1; END { for (sort keys %cmd) { print "'"'"'$_'"'"' => [qw( " . (join " ", sort keys %{$cmd{$_}}) . " )]," } }  '
@@ -118,7 +121,7 @@ sub said {
     return unless $pri == 2;
 
     my $body = $mess->{body};
-    return unless $body =~ s/^\#irssi: \s //ix || lc $mess->{channel} eq '#irssi' || $body =~ /^irssi::/i;
+    return unless $body =~ s/^\#irssi: \s //ix || $body =~ s/^irssi:://i || lc $mess->{channel} eq '#irssi';
     my $readdress = $mess->{channel} ne 'msg' && $body =~ s/\s+@\s+(\S+)[.]?\s*$// ? $1 : '';
 
     #return unless $mess->{address};
@@ -132,7 +135,7 @@ sub said {
 	$syntax_pre = 1;
     }
 
-    if ($body =~ /^(?:\/|irssi::)?help \s+ (?<expr> .* )/xi) {
+    if ($body =~ /^(?:\/)?help \s+ (?<expr> .* )/xi) {
 	my @words = split ' ', $+{expr};
 	my $info;
 
