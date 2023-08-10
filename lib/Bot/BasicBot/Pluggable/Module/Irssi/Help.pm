@@ -5,14 +5,13 @@ use strict;
 use warnings;
 use YAML::Tiny;
 use LWP::Simple qw(); # must not override get!
-#use WWW::Shorten::Simple;
-use AkariLinkShortener;
-
-my $sck = AkariLinkShortener->new;
 
 sub help {
+    my $self = shift;
+    my ($mess) = @_;
+    my $prefix = $mess->{channel} eq 'msg' ? 'irssi::' : '';
     return
-"Help from Irssi. Usage: help <command>, help <command> <subcommand>, syntax <command>"
+"Help from Irssi. Usage: ${prefix}help <command>, ${prefix}help <command> <subcommand>, ${prefix}syntax <command>"
 }
 
 # ack --cc SYNTAX | perl -aln -E' @F = split ":"; @G = split " ", $F[3]; $cmd{ $F[0] }{ $G[0] } = 1; END { for (sort keys %cmd) { print "'"'"'$_'"'"' => [qw( " . (join " ", sort keys %{$cmd{$_}}) . " )]," } }  '
@@ -118,7 +117,7 @@ sub said {
     return unless $pri == 2;
 
     my $body = $mess->{body};
-    return unless $body =~ s/^\#irssi: \s //ix || lc $mess->{channel} eq '#irssi' || $body =~ /^irssi::/i;
+    return unless $body =~ s/^\#irssi: \s //ix || $body =~ s/^irssi:://i || lc $mess->{channel} eq '#irssi';
     my $readdress = $mess->{channel} ne 'msg' && $body =~ s/\s+@\s+(\S+)[.]?\s*$// ? $1 : '';
 
     #return unless $mess->{address};
@@ -132,7 +131,7 @@ sub said {
 	$syntax_pre = 1;
     }
 
-    if ($body =~ /^(?:\/|irssi::)?help \s+ (?<expr> .* )/xi) {
+    if ($body =~ /^(?:\/)?help \s+ (?<expr> .* )/xi) {
 	my @words = split ' ', $+{expr};
 	my $info;
 
@@ -190,7 +189,7 @@ sub said {
 	    if ($info) {
 		$info = _add_syn_colors($info, ["*", "*05", "10"], ["09", "14"], ["*", "13", "13"], ["14"], []);
 
-		$info .= " .. " . $sck->shorten("https://irssi.org/documentation/help/\L$words[0]");
+		$info .= " .. " . $self->linkshortener->shorten("https://irssi.org/documentation/help/\L$words[0]");
 	    }
 	}
 	elsif (@words > 1 && ('set' eq lc $words[0] || 'setting' eq lc $words[0])) {
@@ -244,7 +243,7 @@ sub said {
 		$setting_anchor =~ s/_/-/g;
 		$info = "/set $clr\cB\L$words[1]\E\cB$sep $info[0] " . (@info > 1 ? " ... " : "")
 		    . ($ms ? " \cBMS:\cB$ms " : "")
-		    . " .. " . $sck->shorten("https://irssi.org/documentation/settings#$setting_anchor");
+		    . " .. " . $self->linkshortener->shorten("https://irssi.org/documentation/settings#$setting_anchor");
 	    }
 	}
 	else {
@@ -272,7 +271,7 @@ sub said {
 		    s{%(.)}{$rep{$1} // '%'.$1}ge for @info;
 		    @info = '(No description found)'
 			unless @info;
-		    $info = "\U\cB$cmd:\cB\E @info .. " . $sck->shorten("https://irssi.org/documentation/help/\L$cmd");
+		    $info = "\U\cB$cmd:\cB\E @info .. " . $self->linkshortener->shorten("https://irssi.org/documentation/help/\L$cmd");
 			#if @info;
 		}
 		else {
@@ -293,7 +292,7 @@ sub said {
 			}
 		    }
 		    s{%(.)}{$rep{$1} // '%'.$1}ge for @info;
-		    $info = "\[\U$cmd\E\] @info .. " . $sck->shorten("https://irssi.org/documentation/help/\L$cmd")
+		    $info = "\[\U$cmd\E\] @info .. " . $self->linkshortener->shorten("https://irssi.org/documentation/help/\L$cmd")
 			if @info;
 		}
 	    }
